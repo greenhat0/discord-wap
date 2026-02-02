@@ -1,7 +1,5 @@
-# Discord WAP
+# Discord WAP (Fork)
 Discord proxy client for old mobile browsers with Wireless Application Protocol 1.x or HTML support.
-
-Also see [Discord J2ME](https://github.com/gtrxAC/discord-j2me), a client for devices with Java ME (MIDP) application support.
 
 ## Status
 ### Working
@@ -13,13 +11,16 @@ Also see [Discord J2ME](https://github.com/gtrxAC/discord-j2me), a client for de
 * Settings (e.g. message load count)
 * Message timestamps
 * Attachments and profile pictures (HTML "modern" layout only)
+* Emojis
+  * Note: Only default Emojis are supported as of now. (HTML only)
 ### Not implemented
 * Message editing and deleting
 * Threads
-* Emojis
-
+* Message indicators (WIP)
+* Reactions
 ## How to use
-A public instance is hosted at http://gtrxac.fi/wap or http://146.59.80.3/wap, but it is recommended to host your own instance if possible.
+Hosted public instances are only for the [Original](https://github.com/gtrxAC/discord-wap) repository. You will have to [self-host](#Self-hosting).
+> - A public instance is hosted at http://gtrxac.fi/wap or http://146.59.80.3/wap, but it is recommended to host your own instance if possible.
 
 Using a secondary/alt account is recommended for safety, especially when using public instances hosted by unknown people. However, when using third-party clients, Discord has been known to sometimes restrict or temporarily disable newly created accounts. This may also affect accounts that don't have two-factor authentication or a verified phone number. If your alt account is likely to get restricted, it may be worth using your main account instead.
 
@@ -29,14 +30,7 @@ You will need:
 * A Discord account
 * A way to get that account's token, e.g. a web browser with support for developer tools (most PC browsers, or Kiwi Browser on Android)
 * A phone that supports xHTML/HTML or WAP 1.x/WML 1.1 or higher
-* A data transfer technology that is available in your region (usually GPRS)
-
-Steps:
-* Get your account's token using, for example, [this guide](https://github.com/NotNexuss/Get-Discord-Token).
-* Configure your phone's internet access point settings. In particular, set the APN (access point name) to your carrier's APN, and set the WAP gateway's IP address to one of the IPs listed [here](https://nbpfan.bs0dd.net/index.php?lang=eng&page=wap%2Fmain). Guides for certain phone brands are provided [here](https://lpcwiki.miraheze.org/wiki/GPRS_configuration).
-* Go to your phone's browser and enter the instance's address, for example `http://gtrxac.fi/wap`.
-* When the page loads, enter your account's token and select `Log in`.
-* For quick access in the future, you should add the main menu (Servers/DMs/Settings selection) to your bookmarks. This bookmark will contain your account's token.
+> - A data transfer technology that is available in your region (usually GPRS) | Not related unless you port forward
 
 ## Self-hosting
 1. Install [Node.js](https://nodejs.org).
@@ -45,3 +39,16 @@ Steps:
 4. Edit the variables inside the `.env` file as you see fit.
 4. Open a terminal in the folder of the cloned repository.
 5. Run `npm i` and `node .`
+
+Steps:
+* Get your account's token using, for example, [this guide](https://github.com/NotNexuss/Get-Discord-Token).
+> - Configure your phone's internet access point settings. In particular, set the APN (access point name) to your carrier's APN, and set the WAP gateway's IP address to one of the IPs listed [here](https://nbpfan.bs0dd.net/index.php?lang=eng&page=wap%2Fmain). Guides for certain phone brands are provided [here](https://lpcwiki.miraheze.org/wiki/GPRS_configuration). | Not related unless you port forward
+* Find your IPv4 Address and paste the Instance's address into your Phone's browser, for example http://127.0.0.1:1337/wap | (http://IP:PORT/wap) |
+* When the page loads, enter your account's token and select `Log in`.
+* For quick access in the future, you should add the main menu (Servers/DMs/Settings selection) to your bookmarks. This bookmark will contain your account's token.
+
+
+## Additional credits
+[iamcal](https://github.com/iamcal) for [emoji-data](https://github.com/iamcal/emoji-data)
+
+[gtrxAC](https://github.com/gtrxAC) for [Discord WAP](https://github.com/gtrxAC/discord-wap)

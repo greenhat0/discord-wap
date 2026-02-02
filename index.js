@@ -8,7 +8,15 @@ const sanitizeHtml = require('sanitize-html');
 const cookieParser = require('cookie-parser');
 
 const emoji = new EmojiConvertor();
-emoji.replace_mode = 'unified';
+// emoji.replace_mode = 'unified';
+emoji.img_sets.apple.path = '/emoji-data/img-apple-16/';
+emoji.use_sheet = false;
+emoji.replace_mode = 'img';
+// DOTO:
+// Add unread indicator (!)  || -> (@) (9+) <- Not recommended. ||
+// (DONE) Emojis [Add Facebook, Google, etc.?] || FIX. Emojis don't show up in replies.
+// Message editing & deleting
+// Threads
 
 const app = express();
 const DEST_BASE = "https://discord.com/api/v9";
@@ -18,6 +26,8 @@ app.set('views', './views');
 
 app.use(express.static(path.join(__dirname, 'static')));
 app.use(express.urlencoded({ extended: true }));
+
+app.use(express.static('public')); // EMOJI TEST
 
 // ID -> username mapping cache (used for parsing mentions)
 const userCache = new LRUCache({max: 10000});
@@ -209,7 +219,14 @@ function handleError(res, e) {
 }
 
 function sanitize(str) {
-    return sanitizeHtml(str, {allowedTags: [], disallowedTagsMode: 'recursiveEscape'});
+    // return sanitizeHtml(str, {allowedTags: [], disallowedTagsMode: 'recursiveEscape'});
+    return sanitizeHtml(str, {
+        allowedTags: ['img', 'br', 'b', 'i', 'u'],
+        allowedAttributes: {
+            'img': ['src', 'width', 'height', 'alt', 'style']
+        },
+        disallowedTagsMode: 'recursiveEscape'
+    });
 }
 
 function parseMessageObject(req, res, msg) {
@@ -238,7 +255,14 @@ function parseMessageObject(req, res, msg) {
     if (msg.referenced_message) {
         let content = parseMessageContent(res, msg.referenced_message, true);
 
-        // Replace newlines with spaces (reply is shown as one line)
+        // Replace newlines with spaces (reply is shown as one line) || Wouldn't recommend this.
+        // content = content.replace(/\r\n|\r|\n/gm, "  ");
+
+        // FIX. Emojis are not showing in replies
+        // Keep it like this for now. 
+        content = content.replace(/<img\b[^>]*\balt=["']([^"']*)["'][^>]*>/gi, "$1");
+        // Strip tags before truncating.
+        content = content.replace(/<[^>]*>?/gm, " ");
         content = content.replace(/\r\n|\r|\n/gm, "  ");
 
         const limit = (res.locals.settings.layout != 'standard' && !res.locals.settings.modern) ? 30 : 50;
@@ -334,17 +358,20 @@ function parseMessageContentNonStatus(res, msg, singleLine) {
         })
     }
     if (result == '' && !msg.attachments) return "(unsupported message)";
-
-    // iOS keyboard (I think it's that) is stupid and replaces apostrophes with this unicode character
+       
+    // iOS keyboard (I think it's that) is stupid and replaces apostrophes with this unicode character // <- Yep. caused by iOS Keyboard
     // that shows up as a rectangle/missing character on old phones. Replace it with a normal apostrophe.
     result = result.replace(/’/g, "'");
-
     result = sanitize(result).replace(/\n/g, singleLine ? ' ' : '<br/>');
+    result = emoji.replace_colons(result);
     return result;
 }
 
 function parseMessageContentText(content) {
     if (!content) return content;
+    // Store original mode
+    const originalMode = emoji.replace_mode;
+    const originalColonsMode = emoji.colons_mode;
     let result = content
         // try to convert <@12345...> format into @username
         .replace(/<@(\d{15,})>/gm, (mention, id) => {
@@ -361,15 +388,17 @@ function parseMessageContentText(content) {
 
     // Replace Unicode emojis with :name: textual representations
     emoji.colons_mode = true;
+    //emoji.replace_mode = 'unified';
+    //emoji.replace_mode = 'img';
     result = emoji.replace_unified(result);
-
     // Replace regional indicator emojis with textual representations
     result = result.replace(/\ud83c[\udde6-\uddff]/g, match => {
         return ":regional_indicator_"
             + String.fromCharCode(match.charCodeAt(1) - 0xdde6 + 97)
             + ":";
     })
-
+    emoji.colons_mode = originalColonsMode;
+    emoji.replace_mode = originalMode;
     return result;
 }
 
@@ -431,7 +460,7 @@ function getToken(req, res, next) {
         if (![0, 15, 30, 45].includes(timeOffsetMinutes)) timeOffsetMinutes = 0;
 
         let layout = Number(settingsArr[7]);
-        if (![0, 1, 2, 3, 4, 5].includes(layout)) {
+        if (![0, 1, 2, 3, 4, 5, 6].includes(layout)) {
             layout = getDefaultLayout(req, res);
         }
         res.locals.format = (layout == 2) ? 'wml' : 'html';
@@ -444,12 +473,12 @@ function getToken(req, res, next) {
             use12hTime: (Number(settingsArr[4]) || 0) != 0,
             limitTextBoxSize: (Number(settingsArr[5]) || 0) != 0,
             reverseChat: (Number(settingsArr[6]) || 0) != 0 || layout == 4 || layout == 5,
-            layout: ['standard', 'compact', 'wml', 'dark', 'modern', 'modern-dark'][layout],
-            cssFile: ['style.css', 'style-compact.css', '', 'style-dark.css', 'style.css', 'style-dark.css'][layout],
+            layout: ['standard', 'compact', 'wml', 'dark', 'modern', 'modern-dark', 'compact-dark'][layout],
+            cssFile: ['style.css', 'style-compact.css', '', 'style-dark.css', 'style.css', 'style-dark.css', 'style-compact-dark.css'][layout],
             channelCssFile: [null, null, null, null, 'channel.css', 'channel-dark.css'][layout],
             compact: (layout == 1),
             modern: (layout == 4 || layout == 5),
-            dark: (layout == 3 || layout == 5),
+            dark: (layout == 3 || layout == 5 || layout == 6),
         }
     
         res.locals.headers = {
@@ -795,4 +824,5 @@ app.get("/wap/set", getToken, (req, res) => {
 
 app.listen(process.env.PORT, () => {
     console.log(`Server is running on http://localhost:${process.env.PORT}`);
+    console.log(`Go to http://localhost:${process.env.PORT}/wap/ and paste your token!`)
 });

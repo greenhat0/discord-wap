@@ -65,3 +65,10 @@ a {
     color: #777;
     font-size: 12px;
 }
+img.emoji {
+    width: 16px !important;
+    height: 16px !important;
+    border: 0;
+    vertical-align: middle;
+    margin: 0 1px;
+}

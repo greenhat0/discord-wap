@@ -1,0 +1,25 @@
+body {
+    margin: 0;
+    padding: 0;
+    color: #d8d8ff;
+    background-color: #223;
+}
+
+p {
+    margin: 0 0 0.4em 0;
+}
+
+.reply {
+    color: #807799;
+    font-size: 12px;
+    margin: 0;
+}
+
+a {
+    color: rgb(148, 141, 255);
+}
+
+.time {
+    color: #999999;
+    font-size: 12px;
+}
